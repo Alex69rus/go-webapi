@@ -12,6 +12,14 @@ const (
 	pgURL = "postgresql://localhost/postgres?user=postgres&password=qwerty123&sslmode=disable&search_path=golang"
 )
 
+const (
+	selectSQL      = "SELECT * FROM books"
+	selectWhereSQL = "SELECT * FROM books WHERE id=$1"
+	insertSQL      = "INSERT INTO books (title) VALUES(:title) RETURNING id"
+	updateSQL      = "UPDATE books SET title=$1 WHERE id=$2"
+	deleteSQL      = "DELETE FROM books WHERE id=$1"
+)
+
 // GetBooks returns all books
 func GetBooks() *[]Book {
 	db, err := sqlx.Connect("postgres", pgURL)
@@ -23,7 +31,7 @@ func GetBooks() *[]Book {
 	}
 
 	dbBooks := []Book{}
-	err = db.Select(&dbBooks, "SELECT * FROM books")
+	err = db.Select(&dbBooks, selectSQL)
 	if err != nil {
 		fmt.Println("While SELECT occured error: ", err)
 	}
@@ -42,7 +50,7 @@ func GetBook(id int32) *Book {
 	}
 
 	dbBook := Book{}
-	err = db.Get(&dbBook, "SELECT * FROM books WHERE id=$1", id)
+	err = db.Get(&dbBook, selectWhereSQL, id)
 	if err != nil {
 		fmt.Println("While SELECT by id occured error: ", err)
 		return nil
@@ -52,7 +60,7 @@ func GetBook(id int32) *Book {
 }
 
 // InsertBook insert new book in db
-func InsertBook(newTitle string) int32 {
+func InsertBook(newBook Book) (int32, error) {
 	db, err := sqlx.Connect("postgres", pgURL)
 	if err != nil {
 		fmt.Printf("Error occured: %v", err)
@@ -61,9 +69,18 @@ func InsertBook(newTitle string) int32 {
 		defer db.Close()
 	}
 
-	res := db.MustExec("INSERT INTO books (title) VALUES($1)", newTitle)
-	newID, _ := res.LastInsertId()
-	return int32(newID)
+	rows, err := db.NamedQuery(insertSQL, newBook)
+	if err != nil {
+		fmt.Printf("Error occured: %v", err)
+		return 0, fmt.Errorf("Coudn't create book. Reason:%v", err)
+	}
+
+	var newID int
+	if rows.Next() {
+		rows.Scan(&newID)
+	}
+
+	return int32(newID), nil
 }
 
 // UpdateBook update book in db
@@ -76,5 +93,18 @@ func UpdateBook(id int32, newTitle string) {
 		defer db.Close()
 	}
 
-	db.MustExec("UPDATE books SET title=$1 WHERE id=$2", newTitle, id)
+	db.MustExec(updateSQL, newTitle, id)
+}
+
+// DeleteBook delete book in db by id
+func DeleteBook(id int32) {
+	db, err := sqlx.Connect("postgres", pgURL)
+	if err != nil {
+		fmt.Printf("Error occured: %v", err)
+	}
+	if db != nil {
+		defer db.Close()
+	}
+
+	db.MustExec(deleteSQL, id)
 }
