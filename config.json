@@ -1,0 +1,8 @@
+{
+    "Db": {
+        "Host": "localhost",
+        "User": "postgres",
+        "Password": "qwerty123",
+        "Schema": "golang"
+    }
+}
