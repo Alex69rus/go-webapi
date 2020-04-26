@@ -1,4 +1,4 @@
-package main
+package repo
 
 // DbConfiguration presents database configuration
 type DbConfiguration struct {

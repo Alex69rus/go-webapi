@@ -3,22 +3,22 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/Alex69rus/go-webapi/repo"
 	"github.com/gorilla/mux"
 )
 
+var dbConfig *repo.DbConfiguration = &repo.DbConfiguration{}
+
+func init() {
+	log.SetOutput(os.Stdout)
+	readConfiguration("Db", dbConfig)
+}
+
 func main() {
-	// dbConfig := DbConfiguration{
-	// 	Host:     "localhost",
-	// 	User:     "postgres",
-	// 	Password: "qwerty123",
-	// 	Schema:   "golang",
-	// }
-
-	dbConfig := DbConfiguration{}
-	readConfiguration("Db", &dbConfig)
-
-	handler := NewHandler(&dbConfig)
+	bookRepo := repo.NewBookRepository(dbConfig)
+	handler := NewHandler(bookRepo)
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.homeLink).Methods(http.MethodGet)

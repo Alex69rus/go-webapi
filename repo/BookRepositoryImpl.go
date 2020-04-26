@@ -3,7 +3,7 @@ package repo
 import (
 	"fmt"
 
-	. "github.com/Alex69rus/webapi/models"
+	"github.com/Alex69rus/go-webapi/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // because sqlx require this package
 )
@@ -14,9 +14,9 @@ type BookRepositoryImpl struct {
 }
 
 // NewBookRepository creates new BookRepository
-func NewBookRepository(host string, user string, password string, schema string) *BookRepositoryImpl {
+func NewBookRepository(dbConfig *DbConfiguration) *BookRepositoryImpl {
 	connectStr := fmt.Sprintf("postgresql://%v/postgres?user=%v&password=%v&sslmode=disable&search_path=%v",
-		host, user, password, schema)
+		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Schema)
 	return &BookRepositoryImpl{
 		pgURL: connectStr,
 	}
@@ -31,7 +31,7 @@ const (
 )
 
 // GetBooks returns all books
-func (repo *BookRepositoryImpl) GetBooks() *[]Book {
+func (repo *BookRepositoryImpl) GetBooks() *[]models.Book {
 	db, err := sqlx.Connect("postgres", repo.pgURL)
 	if err != nil {
 		fmt.Printf("Error occured: %v", err)
@@ -40,7 +40,7 @@ func (repo *BookRepositoryImpl) GetBooks() *[]Book {
 		defer db.Close()
 	}
 
-	dbBooks := []Book{}
+	dbBooks := []models.Book{}
 	err = db.Select(&dbBooks, selectSQL)
 	if err != nil {
 		fmt.Println("While SELECT occured error: ", err)
@@ -50,7 +50,7 @@ func (repo *BookRepositoryImpl) GetBooks() *[]Book {
 }
 
 // GetBook find book by id in DB
-func (repo *BookRepositoryImpl) GetBook(id int32) *Book {
+func (repo *BookRepositoryImpl) GetBook(id int32) *models.Book {
 	db, err := sqlx.Connect("postgres", repo.pgURL)
 	if err != nil {
 		fmt.Printf("Error occured: %v", err)
@@ -59,7 +59,7 @@ func (repo *BookRepositoryImpl) GetBook(id int32) *Book {
 		defer db.Close()
 	}
 
-	dbBook := Book{}
+	dbBook := models.Book{}
 	err = db.Get(&dbBook, selectWhereSQL, id)
 	if err != nil {
 		fmt.Println("While SELECT by id occured error: ", err)
@@ -70,7 +70,7 @@ func (repo *BookRepositoryImpl) GetBook(id int32) *Book {
 }
 
 // InsertBook insert new book in db
-func (repo *BookRepositoryImpl) InsertBook(newBook Book) (int32, error) {
+func (repo *BookRepositoryImpl) InsertBook(newBook models.Book) (int32, error) {
 	db, err := sqlx.Connect("postgres", repo.pgURL)
 	if err != nil {
 		fmt.Printf("Error occured: %v", err)

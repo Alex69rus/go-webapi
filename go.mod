@@ -1,4 +1,4 @@
-module github.com/Alex69rus/webapi
+module github.com/Alex69rus/go-webapi
 
 go 1.12
 

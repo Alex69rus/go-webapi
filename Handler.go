@@ -7,21 +7,21 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Alex69rus/webapi/models"
-	"github.com/Alex69rus/webapi/repo"
+	"github.com/Alex69rus/go-webapi/models"
+	"github.com/Alex69rus/go-webapi/repo"
 
 	"github.com/gorilla/mux"
 )
 
 // Handler is http requests handler
 type Handler struct {
-	dbConfig *DbConfiguration
+	repo repo.BookRepository
 }
 
 // NewHandler creates new Handler
-func NewHandler(dbConfig *DbConfiguration) *Handler {
+func NewHandler(bookRepo repo.BookRepository) *Handler {
 	return &Handler{
-		dbConfig: dbConfig,
+		repo: bookRepo,
 	}
 }
 
@@ -30,15 +30,13 @@ func (h *Handler) homeLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
-	repo := h.createBookRepository()
-
 	var newBook models.Book
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Fprint(w, "Kindly enter data with the event title and description only in order to update")
 	}
 	json.Unmarshal(reqBody, &newBook)
-	id, err := repo.InsertBook(newBook)
+	id, err := h.repo.InsertBook(newBook)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err)
@@ -50,19 +48,16 @@ func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllBooks(w http.ResponseWriter, r *http.Request) {
-	repo := h.createBookRepository()
-
-	dbBooks := repo.GetBooks()
+	dbBooks := h.repo.GetBooks()
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(dbBooks)
 }
 
 func (h *Handler) getBookByID(w http.ResponseWriter, r *http.Request) {
-	repo := h.createBookRepository()
 	id := h.getIntFromStr(mux.Vars(r)["id"])
 
-	book := repo.GetBook(id)
+	book := h.repo.GetBook(id)
 	if book != nil {
 		json.NewEncoder(w).Encode(book)
 		return
@@ -71,7 +66,6 @@ func (h *Handler) getBookByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateExistingBook(w http.ResponseWriter, r *http.Request) {
-	repo := h.createBookRepository()
 	id := h.getIntFromStr(mux.Vars(r)["id"])
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -83,16 +77,15 @@ func (h *Handler) updateExistingBook(w http.ResponseWriter, r *http.Request) {
 	if unmarshalErr != nil {
 		fmt.Fprint(w, "unmarshalling error: ", unmarshalErr)
 	}
-	repo.UpdateBook(id, newBook.Title)
+	h.repo.UpdateBook(id, newBook.Title)
 
 	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) deleteBook(w http.ResponseWriter, r *http.Request) {
-	repo := h.createBookRepository()
 	id := h.getIntFromStr(mux.Vars(r)["id"])
 
-	repo.DeleteBook(id)
+	h.repo.DeleteBook(id)
 }
 
 func (h *Handler) getIntFromStr(str string) int32 {
@@ -102,8 +95,4 @@ func (h *Handler) getIntFromStr(str string) int32 {
 	}
 	eventID := int32(eventIDInt64)
 	return eventID
-}
-
-func (h *Handler) createBookRepository() repo.BookRepository {
-	return repo.NewBookRepository(h.dbConfig.Host, h.dbConfig.User, h.dbConfig.Password, h.dbConfig.Schema)
 }

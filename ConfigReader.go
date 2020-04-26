@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/kelseyhightower/envconfig"
@@ -37,7 +38,6 @@ func readEnv(cfg interface{}) {
 
 func processError(err error) {
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+		log.Fatal(err)
 	}
 }
