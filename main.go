@@ -1,13 +1,10 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/kelseyhightower/envconfig"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -32,38 +29,4 @@ func main() {
 	router.HandleFunc("/books/{id}", handler.deleteBook).Methods(http.MethodDelete)
 
 	log.Fatal(http.ListenAndServe(":18132", router))
-}
-
-func readConfiguration(key string, cfg interface{}) {
-	f, err := os.Open("config.json")
-	processError(err)
-
-	fullCfg := map[string]interface{}{}
-	decoder := json.NewDecoder(f)
-	err = decoder.Decode(&fullCfg)
-	processError(err)
-
-	cfgByKey, ok := fullCfg[key]
-	if !ok {
-		processError(fmt.Errorf("Coud not found key: %v", key))
-	}
-
-	res, err := json.Marshal(cfgByKey)
-	processError(err)
-
-	json.Unmarshal(res, cfg)
-
-	readEnv(cfg)
-}
-
-func readEnv(cfg interface{}) {
-	err := envconfig.Process("", cfg)
-	processError(err)
-}
-
-func processError(err error) {
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
-	}
 }

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/alex69rus/Webapi/models"
-	"github.com/alex69rus/Webapi/repo"
+	"github.com/Alex69rus/webapi/models"
+	"github.com/Alex69rus/webapi/repo"
 
 	"github.com/gorilla/mux"
 )

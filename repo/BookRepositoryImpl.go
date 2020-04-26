@@ -3,7 +3,7 @@ package repo
 import (
 	"fmt"
 
-	. "github.com/alex69rus/Webapi/models"
+	. "github.com/Alex69rus/webapi/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // because sqlx require this package
 )
@@ -11,9 +11,6 @@ import (
 // BookRepositoryImpl provide access to books
 type BookRepositoryImpl struct {
 	pgURL string
-	// const (
-	// 	pgURL = "postgresql://localhost/postgres?user=postgres&password=qwerty123&sslmode=disable&search_path=golang"
-	// )
 }
 
 // NewBookRepository creates new BookRepository

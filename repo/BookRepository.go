@@ -1,7 +1,7 @@
 package repo
 
 import (
-	. "github.com/alex69rus/Webapi/models"
+	. "github.com/Alex69rus/webapi/models"
 )
 
 // BookRepository provide access to books
